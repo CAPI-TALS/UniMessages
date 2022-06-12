@@ -2,7 +2,7 @@
     "name": "com.stunning-george.messages",
     "displayName": "UniMessages",
     "author": { "name": "George", "url": "https://github.com/StunningGeorge/UnityMessages" },
-    "version": "0.5",
+    "version": "0.5.0",
     "unity": "2018.4",
     "description": "Simple message buz for Unity.",
     "keywords": [ "Messages"],

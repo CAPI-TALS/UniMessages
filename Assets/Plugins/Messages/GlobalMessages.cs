@@ -11,10 +11,10 @@ namespace Messages
 
         public static void Publish<TMessage>(string publisherName = null)
         {
-            Instance.Publish(typeof(TMessage), default, publisherName);
+            Publish(typeof(TMessage), Activator.CreateInstance<TMessage>(), publisherName);
         }
 
-        public static void Publish<TMessage>(TMessage message, string publisherName = null)
+        public static void Publish<TMessage>(TMessage message, string publisherName)
         {
             Instance.Publish(typeof(TMessage), message, publisherName);
         }
@@ -34,10 +34,10 @@ namespace Messages
 
         public static TResponse Publish<TMessage, TResponse>(string publisherName = null)
         {
-            return Instance.Publish<TMessage, TResponse>(default, publisherName);
+            return Publish<TMessage, TResponse>(Activator.CreateInstance<TMessage>(), publisherName);
         }
 
-        public static TResponse Publish<TMessage, TResponse>(TMessage message, string publisherName = null)
+        public static TResponse Publish<TMessage, TResponse>(TMessage message, string publisherName)
         {
             return Instance.Publish<TMessage, TResponse>(message, publisherName);
         }
@@ -52,7 +52,7 @@ namespace Messages
             return Instance.Subscribe(handler);
         }
 
-        public static IDisposable Subscribe<Tkey, TMessage>(Tkey key, Action<TMessage> handler)
+        public static IDisposable Subscribe<TKey, TMessage>(TKey key, Action<TMessage> handler)
         {
             return Instance.Subscribe(key, handler);
         }
@@ -117,7 +117,7 @@ namespace Messages
             private void Publish(object message, FreeList<Action<object>> handlers)
             {
                 var handlersArray = handlers.GetValues();
-                for (var i = 0; i < handlersArray.Length; i++)
+                for (var i = 0; i < handlers.GetCount(); i++)
                 {
                     var handler = handlersArray[i];
                     handler?.Invoke(message);

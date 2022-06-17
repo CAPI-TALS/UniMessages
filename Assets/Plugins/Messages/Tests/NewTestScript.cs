@@ -26,6 +26,7 @@ public class NewTestScript
         public void Publish()
         {
             GlobalMessages.Publish(new TestMessage(333, true), nameof(Publisher));
+            GlobalMessages.Publish<TestMessage>(default);
         }
     }
     
@@ -43,7 +44,10 @@ public class NewTestScript
             _disposable = db.Build();
         }
 
-        private void OnSubscribe(IMessage message) => Value = message.Value;
+        private void OnSubscribe(IMessage message)
+        {
+            Value = message.Value;
+        }
 
         public void Dispose()
         {

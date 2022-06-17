@@ -133,7 +133,7 @@ namespace Messages
 
                     var action = new Action<object>(o =>
                     {
-                        Debug.Log($"<color=olive>[OnSubscribe]:</color> <b>{type.Name}</b> -> <color=green>{handler.Target.GetType().Name}</color>");
+                        Debug.Log($"<color=olive>[OnSubscribe]:</color> <b>{type.Name}</b> -> <color=green>{handler.Target}</color>");
                         handler((TMessage) o);
                     });
                     if (_subscribedActions.ContainsKey(type))
@@ -161,7 +161,7 @@ namespace Messages
 
                     var action = new Action<object>(o =>
                     {
-                        Debug.Log($"<color=olive>[OnSubscribe]:</color> ({keyType.Name}) - <b>{type.Name}</b> -> <color=green>{handler.Target.GetType().Name}</color>");
+                        Debug.Log($"<color=olive>[OnSubscribe]:</color> ({keyType.Name}) - <b>{type.Name}</b> -> <color=green>{handler.Target}</color>");
                         handler((TMessage) o);
                     });
                     if (_subscribedActionsKeyed.ContainsKey(type))

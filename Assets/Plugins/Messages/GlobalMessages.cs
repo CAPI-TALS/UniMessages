@@ -83,7 +83,7 @@ namespace Messages
             {
                 lock (_lock)
                 {
-                    Debug.Log($"<color=orange>[OnPublish]:</color> {publisherName} -> ({key}) - <b>{message}</b>");
+                    Debug.Log($"<color=orange>[OnPublish]:</color> {publisherName} -> ({key}) - <b>{type.Name}</b>");
                     if (_subscribedActionsKeyed.ContainsKey(type))
                     {
                         if (_subscribedActionsKeyed[type].ContainsKey(keyType))
@@ -133,7 +133,7 @@ namespace Messages
 
                     var action = new Action<object>(o =>
                     {
-                        Debug.Log($"<color=olive>[OnSubscribe]:</color> <b>{type.Name}</b> -> <color=green>{handler.Target}</color>");
+                        Debug.Log($"<color=olive>[OnSubscribe]:</color> <b>{type.Name}</b> -> <color=green>{handler.Method.DeclaringType} > {handler.Method}</color>");
                         handler((TMessage) o);
                     });
                     if (_subscribedActions.ContainsKey(type))
@@ -161,7 +161,7 @@ namespace Messages
 
                     var action = new Action<object>(o =>
                     {
-                        Debug.Log($"<color=olive>[OnSubscribe]:</color> ({keyType.Name}) - <b>{type.Name}</b> -> <color=green>{handler.Target}</color>");
+                        Debug.Log($"<color=olive>[OnSubscribe]:</color> ({keyType.Name}) - <b>{type.Name}</b> -> <color=green>{handler.Method.DeclaringType} > {handler.Method}</color>");
                         handler((TMessage) o);
                     });
                     if (_subscribedActionsKeyed.ContainsKey(type))

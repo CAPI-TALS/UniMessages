@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Messages
 {
@@ -8,44 +9,37 @@ namespace Messages
         private static MessageBroker Instance => _instance ??= new MessageBroker();
         private static MessageBroker _instance;
 
-        public static void Publish<TMessage>()
+        public static void Publish<TMessage>(string publisherName = null)
         {
-            Instance.Publish(typeof(TMessage), default);
+            Instance.Publish(typeof(TMessage), default, publisherName);
         }
 
-        public static void Publish<TMessage>(TMessage message)
+        public static void Publish<TMessage>(TMessage message, string publisherName = null)
         {
-            var type = typeof(TMessage);
-            Instance.Publish(type, message);
-
-            var interfaces = type.GetInterfaces();
-            for (var i = 0; i < interfaces.Length; i++)
-            {
-                Instance.Publish(interfaces[i], message);
-            }
+            Instance.Publish(typeof(TMessage), message, publisherName);
         }
 
-        public static void Publish<TKey, TMessage>(TKey key, TMessage message)
+        public static void Publish<TKey, TMessage>(TKey key, TMessage message, string publisherName = null)
         {
             var keyType = typeof(TKey);
             var type = typeof(TMessage);
-            Instance.Publish(type, keyType, key, message);
+            Instance.Publish(type, keyType, key, message, publisherName);
 
             var interfaces = type.GetInterfaces();
             for (var i = 0; i < interfaces.Length; i++)
             {
-                Instance.Publish(interfaces[i], keyType, key, message);
+                Instance.Publish(interfaces[i], keyType, key, message, publisherName);
             }
         }
 
-        public static TResponse Publish<TMessage, TResponse>()
+        public static TResponse Publish<TMessage, TResponse>(string publisherName = null)
         {
-            return Instance.Publish<TMessage, TResponse>(default);
+            return Instance.Publish<TMessage, TResponse>(default, publisherName);
         }
 
-        public static TResponse Publish<TMessage, TResponse>(TMessage message)
+        public static TResponse Publish<TMessage, TResponse>(TMessage message, string publisherName = null)
         {
-            return Instance.Publish<TMessage, TResponse>(message);
+            return Instance.Publish<TMessage, TResponse>(message, publisherName);
         }
 
         public static IDisposable Subscribe<TMessage>(Action<TMessage> handler)
@@ -70,21 +64,26 @@ namespace Messages
             private readonly Dictionary<Type, object> _subscribedFunctions = new();
             private readonly object _lock = new();
 
-            public void Publish(Type type, object message)
+            public void Publish(Type type, object message, string publisherName)
             {
                 lock (_lock)
                 {
-                    if (_subscribedActions.ContainsKey(type))
+                    Debug.Log($"<color=orange>[OnPublish]:</color> {publisherName} -> <b>{type.Name}</b>");
+                    if (_subscribedActions.ContainsKey(type)) Publish(message, _subscribedActions[type]);
+                    
+                    var interfaces = type.GetInterfaces();
+                    for (var i = 0; i < interfaces.Length; i++)
                     {
-                        Publish(message, _subscribedActions[type]);
+                        if (_subscribedActions.ContainsKey(interfaces[i])) Publish(message, _subscribedActions[interfaces[i]]);
                     }
                 }
             }
 
-            public void Publish(Type type, Type keyType, object key, object message)
+            public void Publish(Type type, Type keyType, object key, object message, string publisherName)
             {
                 lock (_lock)
                 {
+                    Debug.Log($"<color=orange>[OnPublish]:</color> {publisherName} -> ({key}) - <b>{message}</b>");
                     if (_subscribedActionsKeyed.ContainsKey(type))
                     {
                         if (_subscribedActionsKeyed[type].ContainsKey(keyType))
@@ -98,7 +97,7 @@ namespace Messages
                 }
             }
 
-            public TResponse Publish<TMessage, TResponse>(TMessage message)
+            public TResponse Publish<TMessage, TResponse>(TMessage message, string publisherName)
             {
                 var type = typeof(TMessage);
                 lock (_lock)
@@ -107,7 +106,7 @@ namespace Messages
                     {
                         var handler = (Func<TMessage, TResponse>) _subscribedFunctions[type];
                         var result = handler.Invoke(message);
-                        Publish(type, result);
+                        Publish(type, result, publisherName);
                         return result;
                     }
                 }
@@ -132,7 +131,11 @@ namespace Messages
                     var type = typeof(TMessage);
                     int subscriptionIndex;
 
-                    var action = new Action<object>(o => handler((TMessage) o));
+                    var action = new Action<object>(o =>
+                    {
+                        Debug.Log($"<color=olive>[OnSubscribe]:</color> <b>{type.Name}</b> -> <color=green>{handler.Target.GetType().Name}</color>");
+                        handler((TMessage) o);
+                    });
                     if (_subscribedActions.ContainsKey(type))
                     {
                         subscriptionIndex = _subscribedActions[type].Add(action);

@@ -159,7 +159,11 @@ namespace Messages
                     var keyType = typeof(TKey);
                     int subscriptionIndex = 0;
 
-                    var action = new Action<object>(o => handler((TMessage) o));
+                    var action = new Action<object>(o =>
+                    {
+                        Debug.Log($"<color=olive>[OnSubscribe]:</color> ({keyType.Name}) - <b>{type.Name}</b> -> <color=green>{handler.Target.GetType().Name}</color>");
+                        handler((TMessage) o);
+                    });
                     if (_subscribedActionsKeyed.ContainsKey(type))
                     {
                         if (_subscribedActionsKeyed[type].ContainsKey(keyType))

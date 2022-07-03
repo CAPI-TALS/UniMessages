@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Messages
 {
     [CreateAssetMenu(fileName = "MessageBroker", menuName = "MessageBroker")]
-    public class MessageBrokerSo : ScriptableObject, IMessageBroker
+    public class MessageBrokerSo : ScriptableObject, IMessageBroker, IPublisher, ISubscriber
     {
         public object Lock => _lock;
         public Dictionary<Type, Dictionary<Type, Dictionary<object, FreeList<Action<object>>>>> SubscribedActionsKeyed => _subscribedActionsKeyed;
@@ -41,51 +41,6 @@ namespace Messages
             for (var i = 0; i < interfaces.Length; i++)
             {
                 PublishInner(interfaces[i], keyType, key, message, publisherName);
-            }
-        }
-
-        private void PublishInner<TMessage>(object message, string publisherName)
-        {
-            var type = typeof(TMessage);
-            lock (_lock)
-            {
-                Debug.Log($"<color=orange>[OnPublish]:</color> {publisherName} -> <b>{type.Name}</b>");
-                if (_subscribedActions.ContainsKey(type)) PublishInner(message, _subscribedActions[type]);
-
-                var interfaces = type.GetInterfaces();
-                for (var i = 0; i < interfaces.Length; i++)
-                {
-                    if (_subscribedActions.ContainsKey(interfaces[i]))
-                        PublishInner(message, _subscribedActions[interfaces[i]]);
-                }
-            }
-        }
-
-        private void PublishInner(Type type, Type keyType, object key, object message, string publisherName)
-        {
-            lock (_lock)
-            {
-                Debug.Log($"<color=orange>[OnPublish]:</color> {publisherName} -> ({key}) - <b>{type.Name}</b>");
-                if (_subscribedActionsKeyed.ContainsKey(type))
-                {
-                    if (_subscribedActionsKeyed[type].ContainsKey(keyType))
-                    {
-                        if (_subscribedActionsKeyed[type][keyType].ContainsKey(key))
-                        {
-                            PublishInner(message, _subscribedActionsKeyed[type][keyType][key]);
-                        }
-                    }
-                }
-            }
-        }
-
-        private void PublishInner(object message, FreeList<Action<object>> handlers)
-        {
-            var handlersArray = handlers.GetValues();
-            for (var i = 0; i < handlers.GetCount(); i++)
-            {
-                var handler = handlersArray[i];
-                handler?.Invoke(message);
             }
         }
 
@@ -164,6 +119,51 @@ namespace Messages
                 }
 
                 return new SubscriptionTypeKeyIndex(this, type, keyType, key, subscriptionIndex);
+            }
+        }
+
+        private void PublishInner<TMessage>(object message, string publisherName)
+        {
+            var type = typeof(TMessage);
+            lock (_lock)
+            {
+                Debug.Log($"<color=orange>[OnPublish]:</color> {publisherName} -> <b>{type.Name}</b>");
+                if (_subscribedActions.ContainsKey(type)) PublishInner(message, _subscribedActions[type]);
+
+                var interfaces = type.GetInterfaces();
+                for (var i = 0; i < interfaces.Length; i++)
+                {
+                    if (_subscribedActions.ContainsKey(interfaces[i]))
+                        PublishInner(message, _subscribedActions[interfaces[i]]);
+                }
+            }
+        }
+
+        private void PublishInner(Type type, Type keyType, object key, object message, string publisherName)
+        {
+            lock (_lock)
+            {
+                Debug.Log($"<color=orange>[OnPublish]:</color> {publisherName} -> ({key}) - <b>{type.Name}</b>");
+                if (_subscribedActionsKeyed.ContainsKey(type))
+                {
+                    if (_subscribedActionsKeyed[type].ContainsKey(keyType))
+                    {
+                        if (_subscribedActionsKeyed[type][keyType].ContainsKey(key))
+                        {
+                            PublishInner(message, _subscribedActionsKeyed[type][keyType][key]);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void PublishInner(object message, FreeList<Action<object>> handlers)
+        {
+            var handlersArray = handlers.GetValues();
+            for (var i = 0; i < handlers.GetCount(); i++)
+            {
+                var handler = handlersArray[i];
+                handler?.Invoke(message);
             }
         }
     }

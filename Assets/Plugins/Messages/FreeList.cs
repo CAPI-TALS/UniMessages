@@ -4,7 +4,7 @@ using System.Threading;
 
 namespace Messages
 {
-    internal sealed class FreeList<T> : IDisposable
+    public sealed class FreeList<T> : IDisposable
         where T : class
     {
         const int InitialCapacity = 4;

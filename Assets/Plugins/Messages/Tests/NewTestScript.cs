@@ -26,7 +26,6 @@ public class NewTestScript
         public void Publish()
         {
             GlobalMessages.Publish(new TestMessage(333, true), nameof(Publisher));
-            GlobalMessages.Publish<TestMessage>(default);
         }
     }
     

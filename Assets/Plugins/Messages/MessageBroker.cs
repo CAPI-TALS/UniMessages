@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Messages
 {
-    internal class MessageBroker : IMessageBroker, IPublisher, ISubscriber
+    internal class MessageBroker : IMessageBroker, IPublisherSubscriber
     {
         public object Lock => _lock;
         public Dictionary<Type, Dictionary<Type, Dictionary<object, FreeList<Action<object>>>>> SubscribedActionsKeyed => _subscribedActionsKeyed;
